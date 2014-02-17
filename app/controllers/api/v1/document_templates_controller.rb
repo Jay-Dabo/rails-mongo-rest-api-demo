@@ -1,6 +1,8 @@
 class API::V1::DocumentTemplatesController < ApplicationController
   before_action :set_document_template, only: [:show, :edit, :update, :destroy]
 
+  skip_before_filter :verify_authenticity_token, if: Proc.new { |c| c.request.format == 'application/json' }
+
   def index
     @document_templates = DocumentTemplate.all
     respond_to do |format|
@@ -51,6 +53,7 @@ class API::V1::DocumentTemplatesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_template_params
-      params[:document_template]
+      content = params.require(:document_template).fetch(:content, nil).try(:permit!)
+      params.require(:document_template).permit(:type, :name, :description, :is_scan, :content).merge(content: content)
     end
 end
